@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quiz ORIAS – Succession, retraite, épargne</title>
+<style>
+:root{--bg:#f6f6f3;--card:#fff;--tx:#1d1d1b;--mut:#6b6b66;--bd:#dcdcd5;--ac:#2b5fd9;--ok:#1d8a4e;--okb:#e5f5ec;--ko:#c0392b;--kob:#fbeaea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#222221;--tx:#ececE8;--mut:#9a9a94;--bd:#3a3a38;--ac:#6f9bff;--ok:#4cc585;--okb:#16301f;--ko:#ef6b5c;--kob:#3a1c19}}
+:root[data-theme="dark"]{--bg:#161616;--card:#222221;--tx:#ececE8;--mut:#9a9a94;--bd:#3a3a38;--ac:#6f9bff;--ok:#4cc585;--okb:#16301f;--ko:#ef6b5c;--kob:#3a1c19}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:680px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.25rem;margin:0 0 4px}
+.sub{color:var(--mut);font-size:.9rem;margin-bottom:16px}
+.bar{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;background:var(--ac);transition:width .3s}
+.meta{display:flex;justify-content:space-between;color:var(--mut);font-size:.85rem;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px}
+.q{font-weight:600;margin:0 0 4px}
+.hint{color:var(--mut);font-size:.85rem;margin:0 0 12px}
+label{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border:1.5px solid var(--bd);border-radius:10px;margin-bottom:8px;cursor:pointer}
+label input{margin-top:4px;accent-color:var(--ac)}
+label.sel{border-color:var(--ac)}
+label.ok{border-color:var(--ok);background:var(--okb)}
+label.ko{border-color:var(--ko);background:var(--kob)}
+label.miss{border-color:var(--ok);border-style:dashed}
+.exp{margin-top:12px;padding:12px;border-radius:10px;background:var(--bg);font-size:.92rem}
+.exp b.g{color:var(--ok)}.exp b.r{color:var(--ko)}
+button{font:inherit;font-weight:600;padding:11px 20px;border:0;border-radius:10px;background:var(--ac);color:#fff;cursor:pointer;margin-top:12px}
+button:disabled{opacity:.4;cursor:default}
+.big{font-size:2.4rem;font-weight:700;margin:8px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Quiz ORIAS</h1>
+<div class="sub">Coche toutes les bonnes réponses : il peut y en avoir une ou plusieurs.</div>
+<div id="app"></div>
+</main>
+<script>
+const Q=[
+{q:"Quel est l’abattement par enfant sur une succession en ligne directe ?",o:["100 000 €","159 325 €","15 932 €","152 500 €"],a:[0],e:"100 000 € par enfant et par parent. 159 325 € est l’abattement supplémentaire pour un héritier handicapé, et 152 500 € celui de l’assurance-vie (art. 990 I)."},
+{q:"Qui est exonéré de droits de succession grâce à la loi TEPA de 2007 ?",o:["Le conjoint marié","Le partenaire de PACS","Le concubin","L’enfant"],a:[0,1],e:"La loi TEPA exonère le conjoint marié et le partenaire de PACS. Le concubin n’est pas exonéré, et l’enfant bénéficie seulement d’un abattement."},
+{q:"Comment calcule-t-on la masse civile (communauté légale, assurance-vie de Madame payée avec des fonds communs) ?",o:["Biens communs ÷ 2 + biens propres du défunt + moitié de l’AV de Madame","Biens communs ÷ 2 + biens propres du défunt, sans l’AV","Biens communs + biens propres, sans division","RP − 20 % + biens communs + biens propres"],a:[0],e:"En masse civile, l’AV de Madame entre pour moitié (étape 3-4 de ton schéma). Elle est exclue de la masse fiscale."},
+{q:"Parmi ces affirmations sur la masse fiscale, lesquelles sont justes ?",o:["On enlève l’assurance-vie de Madame","On applique −20 % sur la résidence principale","On ajoute la moitié de l’AV de Madame","La RP est comptée à 100 % dans tous les cas"],a:[0,1],e:"Masse fiscale : sans AV de Madame, et avec l’abattement de 20 % sur la RP (exonération partielle)."},
+{q:"Sur quel bien applique-t-on l’abattement de 20 % pour la masse fiscale ?",o:["La résidence principale","Les placements","Le bien propre locatif","L’assurance-vie"],a:[0],e:"L’abattement de 20 % ne concerne que la résidence principale."},
+{q:"Le conjoint survivant a 64 ans et opte pour 100 % d’usufruit. Quelle est la valeur de son usufruit ?",o:["40 %","50 %","60 %","30 %"],a:[0],e:"Barème de l’art. 669 CGI : 61 à 70 ans = 40 % d’usufruit, donc 60 % de nue-propriété pour les enfants."},
+{q:"Masse civile de 400 000 €. Madame (56 ans) choisit 1/4 PP + 3/4 USU. Quelle est sa part ?",o:["250 000 €","200 000 €","280 000 €","150 000 €"],a:[0],e:"1/4 PP = 100 000 €. Reste 300 000 € × 50 % (usufruit à 56 ans) = 150 000 €. Total : 250 000 €."},
+{q:"Part taxable de 37 500 € par enfant. Quels droits sont dus ?",o:["5 694 €","7 500 €","1 806 €","9 306 €"],a:[0],e:"37 500 × 20 % = 7 500 €, moins 1 806 € = 5 694 €."},
+{q:"Quelles associations du barème de succession en ligne directe sont exactes ?",o:["0 à 8 072 € : 5 %","15 933 à 552 324 € : 20 % − 1 806 €","552 324 à 902 838 € : 30 % − 57 038 €","12 110 à 15 932 € : 15 % − 1 806 €"],a:[0,1,2],e:"La dernière est fausse : la tranche 12 110 à 15 932 € est à 15 % − 1 009 €."},
+{q:"Assurance-vie du défunt, primes versées avant 70 ans (art. 990 I) : quelles affirmations sont justes ?",o:["Abattement de 152 500 € par bénéficiaire","17,2 % de prélèvements sociaux sur les intérêts","152 500 € à se partager entre tous les bénéficiaires","Le conjoint bénéficiaire paie 20 %"],a:[0,1],e:"L’abattement est par bénéficiaire, au-delà c’est 20 % jusqu’à 700 000 €. Le conjoint est exonéré."},
+{q:"Retrait d’un PEA avant 5 ans : que se passe-t-il ?",o:["Flat tax de 31,4 % et clôture du plan","Seulement 18,6 % de prélèvements sociaux","Exonération totale","Flat tax de 30 %"],a:[0],e:"31,4 % = 12,8 % d’impôt + 18,6 % de prélèvements sociaux. Après 5 ans, seuls les PS de 18,6 % restent dus."},
+{q:"Quels sont les plafonds de versement ?",o:["PEA classique (bancaire ou assurance) : 150 000 €","PEA-PME : 225 000 €","PEA classique : 225 000 €","PEA-PME : 150 000 €"],a:[0,1],e:"PEA classique : 150 000 €. PEA-PME : 225 000 €."},
+{q:"Comment calcule-t-on la pension de base d’un TNS ?",o:["Moyenne des 25 meilleures années × (trimestres effectués ÷ trimestres à faire) × 50 %","Moyenne des 10 meilleures années × 60 %","Dernière année × 75 %","Moyenne des 25 meilleures années × 50 %, sans proratisation"],a:[0],e:"Pour un salarié ayant tous ses trimestres, le rapport vaut 172/172."},
+{q:"Pour valider 4 trimestres, que faut-il ?",o:["7 212 € de revenus","Au moins 2 mois de travail","3 606 € de revenus","12 mois de travail obligatoires"],a:[0,1],e:"1 803 € par trimestre, soit 7 212 € pour 4 trimestres, avec 2 mois de travail minimum."},
+{q:"Quels âges de départ anticipé sont corrects ?",o:["Handicap : dès 55 ans","Carrière pénible : dès 62 ans","Handicap : dès 62 ans","Carrière pénible : dès 55 ans"],a:[0,1],e:"D’après ta fiche : handicap 55 ans, carrière pénible 62 ans."},
+{q:"ASPA : quels montants mensuels sont corrects ?",o:["Personne seule : 1 043,59 €","Couple : 1 620,18 €","Personne seule : 1 620,18 €","Réservée aux actifs"],a:[0,1],e:"L’ASPA est l’équivalent du RSA pour les personnes âgées."},
+{q:"Salarié dont le revenu est inférieur au PASS 2025 (47 100 €). Quel est son plafond de versement PER ?",o:["4 710 €","3 000 €","4 806 €","3 768 €"],a:[0],e:"Plafond = 10 % du PASS 2025 = 4 710 €."},
+{q:"TNS avec 60 060 € de bénéfice (PASS 2026 = 48 060 €). Quel est son plafond PER ?",o:["7 806 €","6 006 €","12 000 €","4 806 €"],a:[0],e:"(60 060 − 48 060) × 25 % + 4 806 = 3 000 + 4 806 = 7 806 €."},
+{q:"Contrat de 50 000 € dont 10 000 € d’intérêts. Rachat de 20 000 €. Quelle est la base imposable ?",o:["4 000 €","10 000 €","2 000 €","20 000 €"],a:[0],e:"Part des intérêts : 10 000 ÷ 50 000 = 0,2. Base imposable : 20 000 × 0,2 = 4 000 €."},
+{q:"Rachat d’AV, primes versées avant le 27 septembre 2017 : quels taux sont corrects ?",o:["Moins de 4 ans : 35 %","De 4 à 8 ans : 15 %","Plus de 8 ans : 7,5 % après abattement","Moins de 4 ans : 15 %"],a:[0,1,2],e:"S’ajoutent 17,2 % de prélèvements sociaux, sans abattement. Abattement après 8 ans : 4 600 € seul, 9 200 € en couple."},
+{q:"Rachat d’AV, primes versées après le 27 septembre 2017 et inférieures à 150 000 € : quelles affirmations sont justes ?",o:["Avant 8 ans : flat tax de 30 %","Après 8 ans : abattement de 4 600 € (seul) ou 9 200 € (couple)","Après 8 ans, au-delà de l’abattement : 7,5 %","Les 17,2 % de PS bénéficient de l’abattement"],a:[0,1,2],e:"L’abattement ne s’applique qu’à l’impôt, pas aux prélèvements sociaux de 17,2 %."},
+{q:"Quelles tranches du barème de l’impôt sur le revenu sont correctes ?",o:["0 % jusqu’à 11 600 €","11 % de 11 601 à 29 579 €","45 % au-delà de 181 918 €","30 % de 11 601 à 84 577 €"],a:[0,1,2],e:"La tranche à 30 % va de 29 580 à 84 577 €."}
+];
+const app=document.getElementById("app");
+let i=0,score=0,done=false;
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function render(){
+ if(i>=Q.length){
+  const p=Math.round(score/Q.length*100);
+  app.innerHTML='<div class="card"><div class="q">Terminé</div><div class="big">'+score+' / '+Q.length+'</div><div class="hint">'+p+' % de réussite. Une question n’est comptée juste que si toutes les bonnes réponses, et seulement elles, sont cochées.</div><button id="r">Recommencer</button></div>';
+  document.getElementById("r").onclick=()=>{i=0;score=0;render()};return;
+ }
+ done=false;const x=Q[i];
+ let h='<div class="bar"><i style="width:'+(i/Q.length*100)+'%"></i></div><div class="meta"><span>Question '+(i+1)+' / '+Q.length+'</span><span>Score : '+score+'</span></div><div class="card"><p class="q">'+esc(x.q)+'</p><p class="hint">Coche toutes les bonnes réponses.</p>';
+ x.o.forEach((t,k)=>{h+='<label data-k="'+k+'"><input type="checkbox" value="'+k+'"><span>'+esc(t)+'</span></label>'});
+ h+='<div id="fb"></div><button id="b">Valider</button></div>';
+ app.innerHTML=h;
+ app.querySelectorAll("label").forEach(l=>l.querySelector("input").onchange=e=>{if(!done)l.classList.toggle("sel",e.target.checked)});
+ document.getElementById("b").onclick=valid;
+}
+function valid(){
+ if(done){i++;render();return}
+ const x=Q[i],sel=[...app.querySelectorAll("input:checked")].map(c=>+c.value);
+ if(!sel.length)return;
+ done=true;
+ const good=sel.length===x.a.length&&x.a.every(k=>sel.includes(k));
+ if(good)score++;
+ app.querySelectorAll("label").forEach(l=>{
+  const k=+l.dataset.k,s=sel.includes(k),a=x.a.includes(k);
+  l.classList.remove("sel");l.querySelector("input").disabled=true;
+  if(s&&a)l.classList.add("ok");else if(s&&!a)l.classList.add("ko");else if(!s&&a)l.classList.add("miss");
+ });
+ document.getElementById("fb").innerHTML='<div class="exp"><b class="'+(good?'g':'r')+'">'+(good?'Correct.':'Pas tout à fait.')+'</b> '+esc(x.e)+'</div>';
+ document.getElementById("b").textContent=i===Q.length-1?"Voir mon score":"Suivant";
+}
+render();
+</script>
+</body>
+</html>
